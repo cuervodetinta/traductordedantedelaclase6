@@ -180,7 +180,7 @@ if result:
 
     remove_files(7)
 
-image = Image.open('OIG7.jpg')
+image = Image.open('UWU.png')
 st.image(image, width=300)
 
         
