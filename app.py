@@ -15,6 +15,7 @@ st.markdown(
         .stApp {
             background-color: #102C54;
             color: #9fc2e0;
+            text-align: center;
         }
         .css-10trblm.e16nr0p30 {
             text-align: center;
@@ -22,6 +23,11 @@ st.markdown(
         }
         h1, h2, h3, h4, h5, h6, label, span, div {
             color: #9fc2e0 !important;
+        }
+        button.bk.bk-btn.bk-btn-default {
+            background-color: #102C54 !important;
+            color: #9fc2e0 !important;
+            border: 2px solid #9fc2e0 !important;
         }
     </style>
     """,
@@ -183,8 +189,5 @@ if result:
 image = Image.open('UWU.png')
 
 st.image(image, caption='¡Qué divertido suenan los otros idiomas!')
-
-        
-    
 
 
