@@ -17,17 +17,21 @@ st.markdown(
             color: #9fc2e0;
             text-align: center;
         }
-        .css-10trblm.e16nr0p30 {
-            text-align: center;
-            color: #9fc2e0;
-        }
         h1, h2, h3, h4, h5, h6, label, span, div {
             color: #9fc2e0 !important;
         }
-        button.bk.bk-btn.bk-btn-default {
+        .bk-btn {
             background-color: #102C54 !important;
             color: #9fc2e0 !important;
             border: 2px solid #9fc2e0 !important;
+            font-size: 16px !important;
+            padding: 10px 20px !important;
+            border-radius: 8px !important;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
         }
     </style>
     """,
@@ -45,13 +49,16 @@ with st.sidebar:
 
 st.write("Toca el Botón y habla lo que quires traducir")
 
-stt_button = Button(label=" Escuchar  🎤", width=300, height=50)
+# Contenedor HTML centrado
+st.markdown('<div class="button-container">', unsafe_allow_html=True)
 
+# Botón Bokeh
+stt_button = Button(label=" Escuchar  🎤", width=300, height=50)
 stt_button.js_on_event("button_click", CustomJS(code="""
     var recognition = new webkitSpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
- 
+
     recognition.onresult = function (e) {
         var value = "";
         for (var i = e.resultIndex; i < e.results.length; ++i) {
@@ -75,6 +82,9 @@ result = streamlit_bokeh_events(
     debounce_time=0
 )
 
+# Cierre del contenedor
+st.markdown('</div>', unsafe_allow_html=True)
+
 if result:
     if "GET_TEXT" in result:
         st.write(result.get("GET_TEXT"))
@@ -84,97 +94,57 @@ if result:
         pass
     st.title("Texto a Audio")
     translator = Translator()
-    
+
     text = str(result.get("GET_TEXT"))
     in_lang = st.selectbox(
         "Selecciona el lenguaje de Entrada",
         ("Inglés", "Español", "Bengali", "Coreano", "Mandarín", "Japonés"),
     )
-    if in_lang == "Inglés":
-        input_language = "en"
-    elif in_lang == "Español":
-        input_language = "es"
-    elif in_lang == "Bengali":
-        input_language = "bn"
-    elif in_lang == "Coreano":
-        input_language = "ko"
-    elif in_lang == "Mandarín":
-        input_language = "zh-cn"
-    elif in_lang == "Japonés":
-        input_language = "ja"
-    
+    input_language = {
+        "Inglés": "en", "Español": "es", "Bengali": "bn",
+        "Coreano": "ko", "Mandarín": "zh-cn", "Japonés": "ja"
+    }[in_lang]
+
     out_lang = st.selectbox(
         "Selecciona el lenguaje de salida",
         ("Inglés", "Español", "Bengali", "Coreano", "Mandarín", "Japonés"),
     )
-    if out_lang == "Inglés":
-        output_language = "en"
-    elif out_lang == "Español":
-        output_language = "es"
-    elif out_lang == "Bengali":
-        output_language = "bn"
-    elif out_lang == "Coreano":
-        output_language = "ko"
-    elif out_lang == "Mandarín":
-        output_language = "zh-cn"
-    elif out_lang == "Japonés":
-        output_language = "ja"
-    
+    output_language = {
+        "Inglés": "en", "Español": "es", "Bengali": "bn",
+        "Coreano": "ko", "Mandarín": "zh-cn", "Japonés": "ja"
+    }[out_lang]
+
     english_accent = st.selectbox(
         "Selecciona el acento",
-        (
-            "Defecto",
-            "Español",
-            "Reino Unido",
-            "Estados Unidos",
-            "Canada",
-            "Australia",
-            "Irlanda",
-            "Sudáfrica",
-        ),
+        ("Defecto", "Español", "Reino Unido", "Estados Unidos", "Canada", "Australia", "Irlanda", "Sudáfrica"),
     )
-    
-    if english_accent == "Defecto":
-        tld = "com"
-    elif english_accent == "Español":
-        tld = "com.mx"
-    elif english_accent == "Reino Unido":
-        tld = "co.uk"
-    elif english_accent == "Estados Unidos":
-        tld = "com"
-    elif english_accent == "Canada":
-        tld = "ca"
-    elif english_accent == "Australia":
-        tld = "com.au"
-    elif english_accent == "Irlanda":
-        tld = "ie"
-    elif english_accent == "Sudáfrica":
-        tld = "co.za"
-    
+    tld = {
+        "Defecto": "com", "Español": "com.mx", "Reino Unido": "co.uk",
+        "Estados Unidos": "com", "Canada": "ca", "Australia": "com.au",
+        "Irlanda": "ie", "Sudáfrica": "co.za"
+    }[english_accent]
+
     def text_to_speech(input_language, output_language, text, tld):
         translation = translator.translate(text, src=input_language, dest=output_language)
         trans_text = translation.text
         tts = gTTS(trans_text, lang=output_language, tld=tld, slow=False)
-        try:
-            my_file_name = text[0:20]
-        except:
-            my_file_name = "audio"
+        my_file_name = text[0:20] if len(text) >= 1 else "audio"
         tts.save(f"temp/{my_file_name}.mp3")
         return my_file_name, trans_text
-    
+
     display_output_text = st.checkbox("Mostrar el texto")
-    
+
     if st.button("convertir"):
         result, output_text = text_to_speech(input_language, output_language, text, tld)
         audio_file = open(f"temp/{result}.mp3", "rb")
         audio_bytes = audio_file.read()
         st.markdown("## Tú audio:")
         st.audio(audio_bytes, format="audio/mp3", start_time=0)
-    
+
         if display_output_text:
             st.markdown("## Texto de salida:")
             st.write(f"{output_text}")
-    
+
     def remove_files(n):
         mp3_files = glob.glob("temp/*mp3")
         if len(mp3_files) != 0:
@@ -187,7 +157,4 @@ if result:
     remove_files(7)
 
 image = Image.open('UWU.png')
-
 st.image(image, caption='¡Qué divertido suenan los otros idiomas!')
-
-
