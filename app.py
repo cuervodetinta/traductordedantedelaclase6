@@ -181,7 +181,8 @@ if result:
     remove_files(7)
 
 image = Image.open('UWU.png')
-st.image(image, width=300)
+
+st.image(image, caption='¡Qué divertido suenan los otros idiomas!')
 
         
     
